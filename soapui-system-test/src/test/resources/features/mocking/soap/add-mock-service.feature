@@ -1,4 +1,4 @@
-@Automated @Regression
+@Automated @Regression @wip
 Feature: Add SOAP mock service
 
   Scenario: Add mock service option available in soap operation context

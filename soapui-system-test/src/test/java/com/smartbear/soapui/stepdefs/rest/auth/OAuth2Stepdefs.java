@@ -58,7 +58,7 @@ public class OAuth2Stepdefs
 	@When("^and fills out all fields$")
 	public void fillInAllOAuth2Fields()
 	{
-		DialogFixture accessTokenFormDialog = findDialog( OAuth2AccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME, robot );
+		DialogFixture accessTokenFormDialog = findDialog( OAuth2GetAccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME, robot );
 		accessTokenFormDialog.textBox( OAuth2Profile.CLIENT_ID_PROPERTY ).setText( CLIENT_ID );
 		accessTokenFormDialog.textBox( OAuth2Profile.CLIENT_SECRET_PROPERTY ).setText( CLIENT_SECRET );
 		accessTokenFormDialog.textBox( OAuth2Profile.AUTHORIZATION_URI_PROPERTY ).setText( AUTHORIZATION_URI );
@@ -68,7 +68,7 @@ public class OAuth2Stepdefs
 	}
 
 	@When("^switches to another Authorization type and then back again to (.+)$")
-	public void switchToAnotherAuthorizationTypeAndThenBackAgain(String profileName)
+	public void switchToAnotherAuthorizationTypeAndThenBackAgain( String profileName )
 	{
 		selectItemInProfileSelectionComboBox( CredentialsConfig.AuthType.NO_AUTHORIZATION.toString() );
 		selectItemInProfileSelectionComboBox( profileName );
@@ -77,7 +77,7 @@ public class OAuth2Stepdefs
 	@When("^user clicks on Advanced options button$")
 	public void clickOnAdvancedOptionsButton()
 	{
-		rootWindow.button( OAuth2Form.ADVANCED_OPTIONS ).click();
+		rootWindow.button( OAuth2Form.ADVANCED_OPTIONS_BUTTON_NAME ).click();
 	}
 
 	@When("^user selects access token position (.+)$")
@@ -133,7 +133,7 @@ public class OAuth2Stepdefs
 	@Then("^the previously filled fields are still present$")
 	public void verifyThatThePreviouslyFilledFieldsAreStillPresent()
 	{
-		DialogFixture accessTokenFormDialog = findDialog( OAuth2AccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME,
+		DialogFixture accessTokenFormDialog = findDialog( OAuth2GetAccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME,
 				robot );
 		assertThat( accessTokenFormDialog.textBox( OAuth2Profile.CLIENT_ID_PROPERTY ).text(), is( CLIENT_ID ) );
 		assertThat( accessTokenFormDialog.textBox( OAuth2Profile.CLIENT_SECRET_PROPERTY ).text(), is( CLIENT_SECRET ) );
@@ -165,10 +165,10 @@ public class OAuth2Stepdefs
 	@Then("the Get Access token form is closed$")
 	public void verifyThatTheAccessTokenFormIsNotVisible()
 	{
-		FestUtils.verifyDialogIsNotShowing( OAuth2AccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME, robot );
+		FestUtils.verifyDialogIsNotShowing( OAuth2GetAccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME, robot );
 	}
 
-	@When( "^the user selects (.+) in the authorization drop down$" )
+	@When("^the user selects (.+) in the authorization drop down$")
 	public void selectItemInProfileSelectionComboBox( String itemName )
 	{
 		JComboBoxFixture comboBox = getProfileSelectionComboBox();
@@ -198,15 +198,15 @@ public class OAuth2Stepdefs
 	@And("^selects the OAuth 2 flow (.+)$")
 	public void selectOAuth2Flow( String flowName ) throws Throwable
 	{
-		DialogFixture accessTokenFormDialog = findDialog( OAuth2AccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME,
+		DialogFixture accessTokenFormDialog = findDialog( OAuth2GetAccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME,
 				robot );
-		accessTokenFormDialog.comboBox( OAuth2AccessTokenForm.OAUTH_2_FLOW_COMBO_BOX_NAME ).selectItem( flowName );
+		accessTokenFormDialog.comboBox( OAuth2GetAccessTokenForm.OAUTH_2_FLOW_COMBO_BOX_NAME ).selectItem( flowName );
 	}
 
 	@Then("^(.+) field is not visible$")
 	public void verifyClientIdFieldIsNotVisible( String fieldName ) throws Throwable
 	{
-		DialogFixture accessTokenFormDialog = findDialog( OAuth2AccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME, robot );
+		DialogFixture accessTokenFormDialog = findDialog( OAuth2GetAccessTokenForm.ACCESS_TOKEN_FORM_DIALOG_NAME, robot );
 		FestUtils.verifyTextFieldIsNotShowingInDialog( accessTokenFormDialog, fieldName );
 	}
 
@@ -218,7 +218,7 @@ public class OAuth2Stepdefs
 		setProfileNameAndClickOk( profileName );
 	}
 
-	@When( "^the user creates basic authentication profile for authentication type (.+)$" )
+	@When("^the user creates basic authentication profile for authentication type (.+)$")
 	public void createBasicAuthProfileWithName( String profileName ) throws Throwable
 	{
 		selectItemInProfileSelectionComboBox( ProfileSelectionForm.AddEditOptions.ADD.getDescription() );
@@ -226,13 +226,13 @@ public class OAuth2Stepdefs
 		clickOk( getAuthorizationSelectionDialog() );
 	}
 
-	@Then( "^new profile selected with name (.+)$" )
+	@Then("^new profile selected with name (.+)$")
 	public void verifyTheProfileIsSelected( String profileName ) throws Throwable
 	{
 		getProfileSelectionComboBox().requireSelection( profileName );
 	}
 
-	@And( "^user confirms for deletion$" )
+	@And("^user confirms for deletion$")
 	public void confirmDeletion() throws Throwable
 	{
 
@@ -240,7 +240,7 @@ public class OAuth2Stepdefs
 				.using( robot ).button( buttonWithText( "Yes" ) ).click();
 	}
 
-	@Then( "^the profile with name (.+) is deleted$" )
+	@Then("^the profile with name (.+) is deleted$")
 	public void verifyProfileDoesNotExist( String profileName ) throws Throwable
 	{
 		for( String profile : getProfileSelectionComboBox().contents() )
@@ -249,8 +249,8 @@ public class OAuth2Stepdefs
 		}
 	}
 
-	@And( "^the changes the name to (.+)$" )
-	public void setNewProfileName(String newName) throws Throwable
+	@And("^the changes the name to (.+)$")
+	public void setNewProfileName( String newName ) throws Throwable
 	{
 		DialogFixture renameProfileDialog = FestMatchers.dialogWithTitle( ProfileSelectionForm.RENAME_PROFILE_DIALOG_TITLE )
 				.using( robot );
@@ -258,11 +258,11 @@ public class OAuth2Stepdefs
 		renameProfileDialog.button( buttonWithText( "OK" ) ).click();
 	}
 
-	@Then( "^available options in authorization drop down are (.+)$" )
-	public void verifyAddEditOptionsInProfileSelectionComboBox(String values) throws Throwable
+	@Then("^available options in authorization drop down are (.+)$")
+	public void verifyAddEditOptionsInProfileSelectionComboBox( String values ) throws Throwable
 	{
-		String[] expectedAddEditOptions = (values + "," +ProfileSelectionForm.OPTIONS_SEPARATOR).split( "," );
-		List<String> expectedOptionsList = Arrays.asList(expectedAddEditOptions);
+		String[] expectedAddEditOptions = ( values + "," + ProfileSelectionForm.OPTIONS_SEPARATOR ).split( "," );
+		List<String> expectedOptionsList = Arrays.asList( expectedAddEditOptions );
 		String[] actualOptions = getProfileSelectionComboBox().contents();
 
 		for( String actualOption : actualOptions )
@@ -271,13 +271,13 @@ public class OAuth2Stepdefs
 		}
 	}
 
-	@And( "^user selects to add new profile$" )
+	@And("^user selects to add new profile$")
 	public void selectAddNewAuthorizationInProfileSelectionComboBox() throws Throwable
 	{
 		selectItemInProfileSelectionComboBox( ProfileSelectionForm.AddEditOptions.ADD.getDescription() );
 	}
 
-	@And( "^closes the authorization type selection dialog$" )
+	@And("^closes the authorization type selection dialog$")
 	public void closeAuthorizationSelectionDialog() throws Throwable
 	{
 		getAuthorizationSelectionDialog().close();
@@ -294,6 +294,7 @@ public class OAuth2Stepdefs
 	{
 		return rootWindow.dialog( ADVANCED_OPTIONS_DIALOG_NAME );
 	}
+
 	private void setProfileNameAndClickOk( String profileName )
 	{
 		DialogFixture authorizationSelectionDialog = getAuthorizationSelectionDialog();

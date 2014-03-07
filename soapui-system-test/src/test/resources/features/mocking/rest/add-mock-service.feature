@@ -1,4 +1,4 @@
-@Automated @Regression
+@Automated @Regression @wip
 Feature: Add rest mock service
 
   Scenario: Add mock service option available in rest request context

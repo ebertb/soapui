@@ -34,9 +34,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 
-/**
- *
- */
 public class ProfileSelectionForm<T extends AbstractHttpRequest> extends AbstractXmlInspector
 {
 
@@ -48,8 +45,12 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	public static final String DELETE_PROFILE_DIALOG_TITLE = "Delete Profile";
 	public static final String RENAME_PROFILE_DIALOG_TITLE = "Rename Profile";
 
+	public static final String NO_AUTHORIZATION = "No Authorization";
 	private static final String OAUTH_2_FORM_LABEL = "OAuth 2 form";
 	public static final String EMPTY_PANEL = "EmptyPanel";
+
+	static final ImageIcon AUTH_ENABLED_ICON = UISupport.createImageIcon( "/lock.png" );
+	private static final ImageIcon AUTH_NOT_ENABLED_ICON = null;
 
 	private T request;
 	private final JPanel outerPanel = new JPanel( new BorderLayout() );
@@ -57,6 +58,7 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	private JComboBox profileSelectionComboBox;
 	private CellConstraints cc = new CellConstraints();
 	private BasicAuthenticationForm<T> authenticationForm;
+	private OAuth2Form oAuth2Form;
 
 	protected ProfileSelectionForm( T request )
 	{
@@ -70,7 +72,9 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	@Override
 	public JComponent getComponent()
 	{
-		profileSelectionComboBox.setSelectedItem( request.getSelectedAuthProfile() );
+		String selectedAuthProfile = request.getSelectedAuthProfile() == null ? NO_AUTHORIZATION :
+				request.getSelectedAuthProfile();
+		profileSelectionComboBox.setSelectedItem( selectedAuthProfile );
 		return outerPanel;
 	}
 
@@ -78,6 +82,17 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	public boolean isEnabledFor( EditorView<XmlDocument> view )
 	{
 		return !view.getViewId().equals( RawXmlEditorFactory.VIEW_ID );
+	}
+
+	// FIXME Needed?
+	@Override
+	public void release()
+	{
+		super.release();
+		if( oAuth2Form != null )
+		{
+			oAuth2Form.release();
+		}
 	}
 
 	protected void buildUI()
@@ -109,15 +124,9 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	private JPanel createEmptyPanel()
 	{
 		JPanel panelWithText = new JPanel( new BorderLayout() );
-		String helpText = "<html>\n" +
-				"<body>" +
-				"</div>" +
-				"<div style=\"text-align:center\"><b>Not Yet Configured</b>" +
-				"<br>Authorization has not been set for protected services." +
-				"<br>Use the <i>Authorization</i> drop down to configure." +
-				"</div>" +
-				"</body>" +
-				"</html>" ;
+		String helpText = "<html><body><div style=\"text-align:center\">This request currently has no authorization configuration associated with it." +
+				"<br>If you need to access a protected service, just add your " +
+				"<br>configuration here, using the drop down above.</div></body></html>";
 		JLabel label = new JLabel( helpText );
 		label.setHorizontalAlignment( SwingConstants.CENTER );
 		panelWithText.add( label, BorderLayout.CENTER );
@@ -173,6 +182,8 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 
 		if( getBasicAuthenticationTypes().contains( selectedOption ) )
 		{
+			setIcon( AUTH_ENABLED_ICON );
+			setTitle( AuthInspectorFactory.INSPECTOR_ID + " (" + selectedOption + ")" );
 			request.setSelectedAuthProfileAndAuthType( selectedOption, selectedOption );
 			authenticationForm.setButtonGroupVisibility( selectedOption.equals( AbstractHttpRequest.BASIC_AUTH_PROFILE ) );
 			if( isSoapRequest( request ) )
@@ -186,14 +197,17 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 		}
 		else if( isRestRequest( request ) && getOAuth2ProfileContainer().getOAuth2ProfileNameList().contains( selectedOption ) )
 		{
+			setTitle( AuthInspectorFactory.INSPECTOR_ID + " (" + selectedOption + ")" );
 			request.setSelectedAuthProfileAndAuthType( selectedOption, CredentialsConfig.AuthType.O_AUTH_2_0.toString() );
-			OAuth2Form oAuth2Form = new OAuth2Form( getOAuth2ProfileContainer().getProfileByName( selectedOption ) );
+			oAuth2Form = new OAuth2Form( getOAuth2ProfileContainer().getProfileByName( selectedOption ), this );
 			cardPanel.add( oAuth2Form.getComponent(), OAUTH_2_FORM_LABEL );
 			showCard( OAUTH_2_FORM_LABEL );
 		}
 		else    //selectedItem : No Authorization
 		{
-			request.setSelectedAuthProfileAndAuthType( selectedOption, CredentialsConfig.AuthType.NO_AUTHORIZATION.toString() );
+			setIcon( AUTH_NOT_ENABLED_ICON );
+			setTitle( AuthInspectorFactory.INSPECTOR_ID );
+			request.setSelectedAuthProfileAndAuthType( selectedOption, null );
 			showCard( EMPTY_PANEL );
 		}
 	}
@@ -286,7 +300,7 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 		{
 			request.removeBasicAuthenticationProfile( profileName );
 		}
-		refreshProfileSelectionComboBox( CredentialsConfig.AuthType.NO_AUTHORIZATION.toString() );
+		refreshProfileSelectionComboBox( NO_AUTHORIZATION );
 	}
 
 	private void refreshProfileSelectionComboBox( String selectedProfile )
@@ -325,7 +339,7 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	private String[] createOptionsForAuthorizationCombo( String selectedAuthProfile )
 	{
 		ArrayList<String> options = new ArrayList<String>();
-		options.add( CredentialsConfig.AuthType.NO_AUTHORIZATION.toString() );
+		options.add( NO_AUTHORIZATION );
 		options.addAll( request.getBasicAuthenticationProfiles() );
 
 		ArrayList<String> addEditOptions = getAddEditOptions();
@@ -337,12 +351,12 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 			options.addAll( oAuth2Profiles );
 
 		}
-		if( oAuth2Profiles==null || !oAuth2Profiles.contains( selectedAuthProfile ) )
+		if( oAuth2Profiles == null || !oAuth2Profiles.contains( selectedAuthProfile ) )
 		{
 			addEditOptions.remove( AddEditOptions.RENAME.getDescription() );
 		}
 
-		if( options.size() <= 1 || CredentialsConfig.AuthType.NO_AUTHORIZATION.toString().equals( selectedAuthProfile ) )
+		if( options.size() <= 1 || NO_AUTHORIZATION.equals( selectedAuthProfile ) )
 		{
 			addEditOptions.remove( AddEditOptions.DELETE.getDescription() );
 		}

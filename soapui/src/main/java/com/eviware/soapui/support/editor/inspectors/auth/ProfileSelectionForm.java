@@ -45,7 +45,6 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	public static final String DELETE_PROFILE_DIALOG_TITLE = "Delete Profile";
 	public static final String RENAME_PROFILE_DIALOG_TITLE = "Rename Profile";
 
-	public static final String NO_AUTHORIZATION = "No Authorization";
 	private static final String OAUTH_2_FORM_LABEL = "OAuth 2 form";
 	public static final String EMPTY_PANEL = "EmptyPanel";
 
@@ -72,9 +71,7 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	@Override
 	public JComponent getComponent()
 	{
-		String selectedAuthProfile = request.getSelectedAuthProfile() == null ? NO_AUTHORIZATION :
-				request.getSelectedAuthProfile();
-		profileSelectionComboBox.setSelectedItem( selectedAuthProfile );
+		profileSelectionComboBox.setSelectedItem( request.getSelectedAuthProfile() );
 		return outerPanel;
 	}
 
@@ -124,9 +121,15 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	private JPanel createEmptyPanel()
 	{
 		JPanel panelWithText = new JPanel( new BorderLayout() );
-		String helpText = "<html><body><div style=\"text-align:center\">This request currently has no authorization configuration associated with it." +
-				"<br>If you need to access a protected service, just add your " +
-				"<br>configuration here, using the drop down above.</div></body></html>";
+		String helpText = "<html>\n" +
+				"<body>" +
+				"</div>" +
+				"<div style=\"text-align:center\"><b>Not Yet Configured</b>" +
+				"<br>Authorization has not been set for protected services." +
+				"<br>Use the <i>Authorization</i> drop down to configure." +
+				"</div>" +
+				"</body>" +
+				"</html>" ;
 		JLabel label = new JLabel( helpText );
 		label.setHorizontalAlignment( SwingConstants.CENTER );
 		panelWithText.add( label, BorderLayout.CENTER );
@@ -205,9 +208,7 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 		}
 		else    //selectedItem : No Authorization
 		{
-			setIcon( AUTH_NOT_ENABLED_ICON );
-			setTitle( AuthInspectorFactory.INSPECTOR_ID );
-			request.setSelectedAuthProfileAndAuthType( selectedOption, null );
+			request.setSelectedAuthProfileAndAuthType( selectedOption, CredentialsConfig.AuthType.NO_AUTHORIZATION.toString() );
 			showCard( EMPTY_PANEL );
 		}
 	}
@@ -300,7 +301,7 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 		{
 			request.removeBasicAuthenticationProfile( profileName );
 		}
-		refreshProfileSelectionComboBox( NO_AUTHORIZATION );
+		refreshProfileSelectionComboBox( CredentialsConfig.AuthType.NO_AUTHORIZATION.toString() );
 	}
 
 	private void refreshProfileSelectionComboBox( String selectedProfile )
@@ -339,7 +340,7 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 	private String[] createOptionsForAuthorizationCombo( String selectedAuthProfile )
 	{
 		ArrayList<String> options = new ArrayList<String>();
-		options.add( NO_AUTHORIZATION );
+		options.add( CredentialsConfig.AuthType.NO_AUTHORIZATION.toString() );
 		options.addAll( request.getBasicAuthenticationProfiles() );
 
 		ArrayList<String> addEditOptions = getAddEditOptions();
@@ -356,7 +357,7 @@ public class ProfileSelectionForm<T extends AbstractHttpRequest> extends Abstrac
 			addEditOptions.remove( AddEditOptions.RENAME.getDescription() );
 		}
 
-		if( options.size() <= 1 || NO_AUTHORIZATION.equals( selectedAuthProfile ) )
+		if( options.size() <= 1 || CredentialsConfig.AuthType.NO_AUTHORIZATION.toString().equals( selectedAuthProfile ) )
 		{
 			addEditOptions.remove( AddEditOptions.DELETE.getDescription() );
 		}

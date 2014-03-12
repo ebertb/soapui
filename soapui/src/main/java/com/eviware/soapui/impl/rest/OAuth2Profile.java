@@ -80,7 +80,8 @@ public class OAuth2Profile implements PropertyExpansionContainer
 		ENTERED_MANUALLY( "Entered Manually" ),
 		WAITING_FOR_AUTHORIZATION( "Waiting for Authorization" ),
 		RECEIVED_AUTHORIZATION_CODE( "Received authorization code" ),
-		RETRIEVED_FROM_SERVER( "Retrieved from server" );
+		RETRIEVED_FROM_SERVER( "Retrieved from server" ),
+		EXPIRED( "Expired" );
 
 		private String description;
 		private static final Map<String, AccessTokenStatus> lookups;
@@ -158,9 +159,9 @@ public class OAuth2Profile implements PropertyExpansionContainer
 	public String getName()
 	{
 		//TODO: this is only for backward compatibility where we had only one profile without name, should be removed in 5.1
-		if(StringUtils.isEmpty( configuration.getName()))
+		if( StringUtils.isEmpty( configuration.getName() ) )
 		{
-			configuration.setName( "OAuth 2.0 - Profile 1");
+			configuration.setName( "OAuth 2.0 - Profile 1" );
 		}
 
 		return configuration.getName();
@@ -185,6 +186,11 @@ public class OAuth2Profile implements PropertyExpansionContainer
 	public void receivedAuthorizationCode()
 	{
 		setAccessTokenStatus( AccessTokenStatus.RECEIVED_AUTHORIZATION_CODE );
+	}
+
+	public void expired()
+	{
+		setAccessTokenStatus( AccessTokenStatus.EXPIRED );
 	}
 
 	public void applyRetrievedAccessToken( String accessToken )
@@ -522,7 +528,6 @@ public class OAuth2Profile implements PropertyExpansionContainer
 		{
 			return;
 		}
-
 
 		if( status != null )
 		{

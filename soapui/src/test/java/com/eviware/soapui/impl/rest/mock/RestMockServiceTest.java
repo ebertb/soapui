@@ -19,7 +19,7 @@ import static org.junit.Assert.assertThat;
 
 public class RestMockServiceTest
 {
-	public static final String PATH = "aNicePath";
+	public static final String PATH = "/aNicePath";
 	private RestMockService restMockService;
 	private RestRequest restRequest;
 
@@ -39,6 +39,18 @@ public class RestMockServiceTest
 
 		RestMockAction restMockAction = restMockService.getMockOperationAt( 0 );
 		assertEquals( PATH, restMockAction.getResourcePath() );
+		assertEquals( GET, restMockAction.getMethod() );
+	}
+
+	@Test
+	public void shouldAddNewMockActionWithEmptyPath() throws SoapUIException
+	{
+		restRequest.setPath( "/" );
+
+		restMockService.addNewMockAction( restRequest );
+
+		RestMockAction restMockAction = restMockService.getMockOperationAt( 0 );
+		assertEquals( "/", restMockAction.getResourcePath() );
 		assertEquals( GET, restMockAction.getMethod() );
 	}
 

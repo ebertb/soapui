@@ -180,6 +180,7 @@ public class SoapUI
 	private static final String PROXY_ENABLED_ICON = "/proxyEnabled.png";
 	private static final String PROXY_DISABLED_ICON = "/proxyDisabled.png";
 	public static final String BUILDINFO_PROPERTIES = "/buildinfo.properties";
+	public static final String SOAPUI_WELCOME_PAGE = "http://www.soapui.org/Downloads/thank-you-for-downloading-soapui.html";
 	@SuppressWarnings( "deprecation" )
 	public static String PUSH_PAGE_URL = "http://soapui.org/Appindex/soapui-starterpage.html?version="
 			+ URLEncoder.encode( SOAPUI_VERSION );
@@ -672,6 +673,7 @@ public class SoapUI
 	{
 		public void run()
 		{
+			boolean isFirstLaunch = !DefaultSoapUICore.settingsFileExists();
 			Properties props = new Properties();
 			try
 			{
@@ -713,6 +715,10 @@ public class SoapUI
 				}
 
 				startCajoServerIfNotOverriddenBySetting();
+				if (isFirstLaunch)
+				{
+					Tools.openURL( SOAPUI_WELCOME_PAGE );
+				}
 			}
 			catch( Exception e )
 			{
@@ -1366,7 +1372,7 @@ public class SoapUI
 
 	private static class AboutAction extends AbstractAction
 	{
-		private static final String COPYRIGHT = "2004-2013 smartbear.com";
+		private static final String COPYRIGHT = "2004-2014 smartbear.com";
 		private static final String SOAPUI_WEBSITE = "http://www.soapui.org";
 		private static final String SMARTBEAR_WEBSITE = "http://www.smartbear.com";
 

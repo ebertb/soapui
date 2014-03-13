@@ -12,18 +12,16 @@
 
 package com.eviware.soapui.impl.wsdl.mock.dispatch;
 
+import com.eviware.soapui.model.mock.*;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.eviware.soapui.impl.wsdl.mock.WsdlMockOperation;
-import com.eviware.soapui.impl.wsdl.mock.WsdlMockResponse;
-import com.eviware.soapui.model.mock.*;
 
 public class SequenceMockOperationDispatcher extends AbstractMockOperationDispatcher implements MockRunListener
 {
 	private int currentDispatchIndex;
 
-	public SequenceMockOperationDispatcher( WsdlMockOperation mockOperation )
+	public SequenceMockOperationDispatcher( MockOperation mockOperation )
 	{
 		super( mockOperation );
 
@@ -32,16 +30,13 @@ public class SequenceMockOperationDispatcher extends AbstractMockOperationDispat
 
 	public MockResponse selectMockResponse( MockRequest request, MockResult result )
 	{
-		synchronized( result.getMockOperation() )
-		{
-			if( currentDispatchIndex >= getMockOperation().getMockResponseCount() )
-				currentDispatchIndex = 0;
+		if( currentDispatchIndex >= getMockOperation().getMockResponseCount() )
+			currentDispatchIndex = 0;
 
-			WsdlMockResponse mockResponse = getMockOperation().getMockResponseAt( currentDispatchIndex );
+		MockResponse mockResponse = getMockOperation().getMockResponseAt( currentDispatchIndex );
 
-			currentDispatchIndex++ ;
-			return mockResponse;
-		}
+		currentDispatchIndex++ ;
+		return mockResponse;
 	}
 
 	@Override
@@ -71,7 +66,7 @@ public class SequenceMockOperationDispatcher extends AbstractMockOperationDispat
 
 	public static class Factory implements MockOperationDispatchFactory
 	{
-		public MockOperationDispatcher build( WsdlMockOperation mockOperation )
+		public MockOperationDispatcher build( MockOperation mockOperation )
 		{
 			return new SequenceMockOperationDispatcher( mockOperation );
 		}

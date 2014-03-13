@@ -88,6 +88,8 @@
                 actionClass="com.eviware.soapui.impl.wsdl.actions.project.AddNewTestSuiteAction"/>
     <tns:action id="AddNewWSDLMockServiceAction"
                 actionClass="com.eviware.soapui.impl.wsdl.actions.project.AddNewMockServiceAction"/>
+    <tns:action id="AddNewRestMockServiceAction"
+                actionClass="com.eviware.soapui.impl.wsdl.actions.project.AddNewRestMockServiceAction"/>
     <tns:action id="SaveProjectAction"
                 actionClass="com.eviware.soapui.impl.wsdl.actions.project.SaveProjectAction"/>
     <tns:action id="SaveProjectAsAction"
@@ -334,6 +336,8 @@
     <tns:action id="ImportMockService"
                 actionClass="com.eviware.soapui.impl.wsdl.actions.mockservice.ImportMockService"/>
     <tns:action id="MockAsWar" actionClass="com.eviware.soapui.actions.MockAsWarAction"/>
+    <tns:action id="AddEmptyRestMockResourceAction"
+                actionClass="com.eviware.soapui.impl.rest.actions.mock.AddEmptyRestMockResourceAction"/>
 
     <!-- MockOperation Actions -->
     <tns:action id="OpenRequestForMockOperationAction"
@@ -478,6 +482,8 @@
                            keyStroke="menu T"/>
         <tns:actionMapping actionId="AddNewWSDLMockServiceAction"
                            keyStroke="menu O"/>
+        <tns:actionMapping actionId="AddNewRestMockServiceAction"
+                           keyStroke="menu R"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="RenameProjectAction"
                            keyStroke="F2"/>
@@ -704,7 +710,6 @@
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="AddNewTestCaseAction"
                            keyStroke="menu N" iconPath="/testCase.gif"/>
-        <tns:actionMapping actionId="CreateWebTestCaseAction"/>
         <tns:actionMapping actionId="CloneTestSuiteAction"
                            keyStroke="F9"/>
         <tns:actionMapping actionId="SeperatorAction"/>
@@ -1077,6 +1082,8 @@
         <tns:actionMapping actionId="StopMockServiceAction"/>
         <tns:actionMapping actionId="RestartMockServiceAction"/>
         <tns:actionMapping actionId="SeperatorAction"/>
+        <tns:actionMapping actionId="AddEmptyRestMockResourceAction"/>
+        <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="DeleteMockServiceAction" keyStroke="DELETE"/>
     </tns:actionGroup>
 
@@ -1089,7 +1096,7 @@
                            keyStroke="ENTER"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="NewMockResponseAction"
-                           keyStroke="menu N" iconPath="/addToMockService.gif"/>
+                           keyStroke="menu N" iconPath="/addToRestMockAction.gif"/>
         <tns:actionMapping actionId="SeperatorAction"/>
         <tns:actionMapping actionId="RenameMockOperationAction"
                            keyStroke="F2"/>

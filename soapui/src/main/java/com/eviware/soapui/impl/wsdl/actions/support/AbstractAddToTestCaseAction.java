@@ -12,9 +12,6 @@
 
 package com.eviware.soapui.impl.wsdl.actions.support;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
 import com.eviware.soapui.impl.wsdl.WsdlTestSuite;
@@ -23,6 +20,9 @@ import com.eviware.soapui.model.ModelItem;
 import com.eviware.soapui.model.testsuite.TestSuite;
 import com.eviware.soapui.support.UISupport;
 import com.eviware.soapui.support.action.support.AbstractSoapUIAction;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base class for actions that add TestSteps to a TestCase
@@ -37,24 +37,24 @@ public abstract class AbstractAddToTestCaseAction<T extends ModelItem> extends A
 		super( name, description );
 	}
 
-	protected WsdlTestCase getTargetTestCase( WsdlProject project )
+	public static WsdlTestCase getTargetTestCase( WsdlProject project )
 	{
 		List<WsdlTestCase> testCases = new ArrayList<WsdlTestCase>();
 		List<WsdlTestSuite> testSuites = new ArrayList<WsdlTestSuite>();
 		List<String> testCaseNames = new ArrayList<String>();
-		WsdlTestCase testCase = null;
+		WsdlTestCase testCase;
 
 		if( project.getTestSuiteCount() == 0 )
 		{
-			return addNewTestSuiteAndTestCase( project );
+			return addNewTestSuiteAndTestCase( project, "Missing TestSuite in project, enter name to create" );
 		}
 
 		for( int c = 0; c < project.getTestSuiteCount(); c++ )
 		{
-			WsdlTestSuite testSuite = ( WsdlTestSuite )project.getTestSuiteAt( c );
+			WsdlTestSuite testSuite = project.getTestSuiteAt( c );
 			for( int i = 0; i < testSuite.getTestCaseCount(); i++ )
 			{
-				testCase = ( WsdlTestCase )testSuite.getTestCaseAt( i );
+				testCase = testSuite.getTestCaseAt( i );
 
 				testCases.add( testCase );
 				testCaseNames.add( ( testCaseNames.size() + 1 ) + ": " + testSuite.getName() + " - " + testCase.getName() );
@@ -81,9 +81,9 @@ public abstract class AbstractAddToTestCaseAction<T extends ModelItem> extends A
 			if( selection == null )
 				return null;
 
-			WsdlTestSuite testSuite = ( WsdlTestSuite )project.getTestSuiteAt( testSuiteNames.indexOf( selection ) );
+			WsdlTestSuite testSuite = project.getTestSuiteAt( testSuiteNames.indexOf( selection ) );
 
-			String name = UISupport.prompt( "Enter name for TestCase create", "Create TestCase",
+			String name = UISupport.prompt( "Specify name of TestCase", "Create TestCase",
 					"TestCase " + ( testSuite.getTestCaseCount() + 1 ) );
 			if( name == null )
 				return null;
@@ -122,11 +122,11 @@ public abstract class AbstractAddToTestCaseAction<T extends ModelItem> extends A
 				// selected create new testsuite?
 				if( testSuite == null )
 				{
-					return addNewTestSuiteAndTestCase( project );
+					return addNewTestSuiteAndTestCase( project, "Specify name of TestSuite" );
 				}
 				else
 				{
-					String name = UISupport.prompt( "Enter name for TestCase create", "Create TestCase", "TestCase "
+					String name = UISupport.prompt( "Specify name of TestCase", "Create TestCase", "TestCase "
 							+ ( testSuite.getTestCaseCount() + 1 ) );
 					if( name == null )
 						return null;
@@ -139,18 +139,18 @@ public abstract class AbstractAddToTestCaseAction<T extends ModelItem> extends A
 		return testCase;
 	}
 
-	protected WsdlTestCase addNewTestSuiteAndTestCase( WsdlProject project )
+	protected static WsdlTestCase addNewTestSuiteAndTestCase( WsdlProject project, String questionText )
 	{
-		String testSuiteName = UISupport.prompt( "Missing TestSuite in project, enter name to create",
+		String testSuiteName = UISupport.prompt( questionText,
 				"Create TestSuite", "TestSuite " + ( project.getTestSuiteCount() + 1 ) );
 		if( testSuiteName == null )
 			return null;
 
-		String testCaseName = UISupport.prompt( "Enter name for TestCase create", "Create TestCase", "TestCase 1" );
+		String testCaseName = UISupport.prompt( "Specify name of TestCase", "Create TestCase", "TestCase 1" );
 		if( testCaseName == null )
 			return null;
 
-		WsdlTestSuite testSuite = ( WsdlTestSuite )project.addNewTestSuite( testSuiteName );
+		WsdlTestSuite testSuite = project.addNewTestSuite( testSuiteName );
 		return testSuite.addNewTestCase( testCaseName );
 	}
 }

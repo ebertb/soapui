@@ -40,7 +40,6 @@ import com.eviware.soapui.support.components.JEditorStatusBarWithProgress;
 import com.eviware.soapui.support.components.JXToolBar;
 import com.eviware.soapui.support.editor.inspectors.AbstractXmlInspector;
 import com.eviware.soapui.support.editor.inspectors.auth.AuthInspectorFactory;
-import com.eviware.soapui.support.editor.inspectors.auth.ProfileSelectionForm;
 import com.eviware.soapui.support.editor.views.xml.source.XmlSourceEditorView;
 import com.eviware.soapui.support.editor.views.xml.source.XmlSourceEditorView.JEditorStatusBarTargetProxy;
 import com.eviware.soapui.support.editor.xml.XmlDocument;
@@ -82,7 +81,7 @@ import java.beans.PropertyChangeListener;
 
 /**
  * Abstract DesktopPanel for HttpRequests
- *
+ * 
  * @author Ole.Matzura
  */
 
@@ -91,7 +90,7 @@ public abstract class AbstractHttpRequestDesktopPanel<T extends ModelItem, T2 ex
 {
 	private final static Logger log = Logger.getLogger( AbstractHttpRequestDesktopPanel.class );
 
-	protected EndpointsComboBoxModel endpointsModel;
+	protected  EndpointsComboBoxModel endpointsModel;
 
 	private JButton submitButton;
 	private JButton cancelButton;
@@ -143,7 +142,7 @@ public abstract class AbstractHttpRequestDesktopPanel<T extends ModelItem, T2 ex
 		this.endpointsModel = new EndpointsComboBoxModel( request );
 	}
 
-	public ComboBoxModel getEndpointsModel()
+	public ComboBoxModel getEndpointsModel( )
 	{
 		return endpointsModel;
 	}
@@ -322,7 +321,7 @@ public abstract class AbstractHttpRequestDesktopPanel<T extends ModelItem, T2 ex
 		{
 			toolbar.addSeparator();
 
-			toolbar.add( endpointPanel );
+			toolbar.add( endpointPanel);
 		}
 
 		toolbar.add( Box.createHorizontalGlue() );
@@ -396,9 +395,9 @@ public abstract class AbstractHttpRequestDesktopPanel<T extends ModelItem, T2 ex
 			public void mouseClicked( MouseEvent e )
 			{
 				Inspector inspector = getRequestEditor().getInspector( AuthInspectorFactory.INSPECTOR_ID );
-				if( inspector != null )
+				if( inspector != null)
 				{
-					( ( AbstractXmlInspector )inspector ).showInPanel();
+					(( AbstractXmlInspector )inspector).showInPanel();
 				}
 			}
 		}
@@ -416,7 +415,7 @@ public abstract class AbstractHttpRequestDesktopPanel<T extends ModelItem, T2 ex
 
 	protected boolean isAuthActivated( String authType )
 	{
-		return authType != null && !( authType.equals( CredentialsConfig.AuthType.NO_AUTHORIZATION.toString() ) );
+		return authType != null && !( authType.equals( CredentialsConfig.AuthType.NO_AUTHORIZATION.toString()) );
 	}
 
 	protected JPanel buildEndpointPanel()
@@ -427,8 +426,16 @@ public abstract class AbstractHttpRequestDesktopPanel<T extends ModelItem, T2 ex
 		JPanel comboBoxPanel = new JPanel( new BorderLayout( 0, 0 ) );
 		buildLockIcon();
 		comboBoxPanel.add( lockIcon, BorderLayout.WEST );
-		comboBoxPanel.add( endpointCombo, BorderLayout.CENTER );
+		if(endpointComponent!=null)
+		{
+			comboBoxPanel.add( endpointCombo, BorderLayout.CENTER );
+		}
 		return comboBoxPanel;
+	}
+
+	protected JLabel getLockIcon()
+	{
+		return lockIcon;
 	}
 
 	public abstract class AbstractHttpRequestMessageEditor<T3 extends XmlDocument> extends

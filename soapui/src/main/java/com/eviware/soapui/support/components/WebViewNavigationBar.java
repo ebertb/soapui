@@ -11,6 +11,8 @@
  */
 package com.eviware.soapui.support.components;
 
+import com.eviware.soapui.support.DocumentListenerAdapter;
+import com.eviware.soapui.support.StringUtils;
 import com.eviware.soapui.support.UISupport;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -19,9 +21,12 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 
 import javax.swing.*;
+import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * @author joel.jonsson
@@ -36,6 +41,7 @@ class WebViewNavigationBar
 	private JTextField urlField;
 	private ForwardAction forwardAction;
 	private BackAction backAction;
+	private Color originalFontColor;
 
 	WebViewNavigationBar( )
 	{
@@ -68,14 +74,31 @@ class WebViewNavigationBar
 		{
 			@Override
 			public void changed( ObservableValue<? extends String> observableValue, String oldLocation,
-										String newLocation )
+										final String newLocation )
 			{
 				if( urlField != null )
 				{
-					urlField.setText( newLocation );
+					SwingUtilities.invokeLater( new Runnable()
+					{
+						public void run()
+						{
+							if( StringUtils.hasContent(newLocation) )
+							{
+								urlField.setText( newLocation );
+							}
+							resetTextFieldDefaults();
+							urlField.setFocusable( false );
+							urlField.setFocusable( true );
+						}
+					} );
 				}
 			}
 		} );
+	}
+
+	public void focusUrlField()
+	{
+		urlField.requestFocus();
 	}
 
 	private JComponent createNavigationBar()
@@ -91,7 +114,44 @@ class WebViewNavigationBar
 		toolbar.add( new ReloadAction() );
 		toolbar.add( urlField );
 		urlField.addActionListener( new UrlEnteredActionListener() );
+		urlField.setText( "Enter URL here" );
+		urlField.setFont( urlField.getFont().deriveFont( Font.ITALIC ) );
+		originalFontColor = urlField.getForeground();
+		urlField.setForeground( new Color( 170, 170, 170 ) );
+		urlField.getDocument().addDocumentListener( new DocumentListenerAdapter()
+		{
+			@Override
+			public void update( Document document )
+			{
+				removeHintText();
+				urlField.getDocument().removeDocumentListener( this );
+			}
+		} );
+		urlField.addMouseListener( new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked( MouseEvent e )
+			{
+				removeHintText();
+				urlField.removeMouseListener( this );
+			}
+		} );
 		return toolbar;
+	}
+
+	private void removeHintText()
+	{
+		if (urlField.getText().equals("Enter URL here"))
+		{
+			urlField.setText( "" );
+		}
+		resetTextFieldDefaults();
+	}
+
+	private void resetTextFieldDefaults()
+	{
+		urlField.setFont(urlField.getFont().deriveFont( Font.PLAIN ));
+		urlField.setForeground( originalFontColor );
 	}
 
 	Component getComponent()
@@ -191,7 +251,7 @@ class WebViewNavigationBar
 			{
 				url = "http://" + url;
 			}
-			webViewBasedBrowserComponent.navigate( url, null );
+			webViewBasedBrowserComponent.navigate( url );
 		}
 	}
 }

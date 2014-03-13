@@ -11,6 +11,7 @@ import com.eviware.soapui.model.support.ModelSupport;
 import com.eviware.soapui.support.MessageSupport;
 import com.eviware.soapui.support.UISupport;
 import com.eviware.soapui.support.action.support.AbstractSoapUIAction;
+import com.eviware.soapui.support.types.StringToStringsMap;
 
 public class AddRestRequestToMockServiceAction extends AbstractSoapUIAction<RestRequest>
 {
@@ -73,7 +74,7 @@ public class AddRestRequestToMockServiceAction extends AbstractSoapUIAction<Rest
 
 	private String promptForServiceName( String title, WsdlProject project )
 	{
-		String defaultName = "MockService " + ( project.getRestMockServiceCount() + 1 );
+		String defaultName = "REST MockService " + ( project.getRestMockServiceCount() + 1 );
 		return UISupport.prompt( "Enter name of new MockService", title, defaultName );
 	}
 
@@ -85,18 +86,25 @@ public class AddRestRequestToMockServiceAction extends AbstractSoapUIAction<Rest
 		String responseName = "Response " + responseCount;
 
 		RestMockResponse mockResponse = ((RestMockAction )matchedOperation).addNewMockResponse( responseName );
-		copyResponseContent( restRequest, mockResponse );
+		// add expected response if available
+		if( restRequest != null && restRequest.getResponse() != null )
+		{
+			copyResponseContent( restRequest, mockResponse );
+			copyHeaders( restRequest, mockResponse );
+		}
+	}
+
+	private void copyHeaders( RestRequest restRequest, RestMockResponse mockResponse )
+	{
+		StringToStringsMap requestHeaders = restRequest.getResponse().getResponseHeaders();
+		mockResponse.setResponseHeaders( requestHeaders );
 	}
 
 	private void copyResponseContent( RestRequest restRequest, RestMockResponse mockResponse )
 	{
-		// add expected response if available
-		if( restRequest != null && restRequest.getResponse() != null )
-		{
-			HttpResponse response = restRequest.getResponse();
-			mockResponse.setResponseContent( response.getContentAsString() );
-			mockResponse.setContentType( response.getContentType() );
-		}
+		HttpResponse response = restRequest.getResponse();
+		mockResponse.setResponseContent( response.getContentAsString() );
+		mockResponse.setContentType( response.getContentType() );
 	}
 
 }

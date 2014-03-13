@@ -24,7 +24,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;

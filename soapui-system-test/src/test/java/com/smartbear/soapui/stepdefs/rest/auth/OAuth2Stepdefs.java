@@ -24,11 +24,9 @@ import static com.smartbear.soapui.utils.fest.FestUtils.findDialog;
 import static com.smartbear.soapui.utils.fest.FestUtils.verifyButtonIsNotShowing;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.hasItemInArray;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class OAuth2Stepdefs
 {
@@ -43,7 +41,6 @@ public class OAuth2Stepdefs
 	private static final String ADVANCED_OPTIONS_DIALOG_NAME = "OAuth2.0 Advanced options";
 
 	private static final String OAUTH_2_COMBOBOX_ITEM = CredentialsConfig.AuthType.O_AUTH_2_0.toString();
-	private static final String GLOBAL_HTTP_SETTINGS_COMBOBOX_ITEM = CredentialsConfig.AuthType.GLOBAL_HTTP_SETTINGS.toString();
 	public static final String BUTTON_OK = "OK";
 
 	private FrameFixture rootWindow;

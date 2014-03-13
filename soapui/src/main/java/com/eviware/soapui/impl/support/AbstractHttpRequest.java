@@ -23,20 +23,12 @@ import com.eviware.soapui.impl.wsdl.HttpAttachmentPart;
 import com.eviware.soapui.impl.wsdl.WsdlRequest;
 import com.eviware.soapui.impl.wsdl.submit.transports.http.HttpResponse;
 import com.eviware.soapui.impl.wsdl.submit.transports.http.support.methods.IAfterRequestInjection;
-import com.eviware.soapui.impl.wsdl.support.CompressedStringSupport;
-import com.eviware.soapui.impl.wsdl.support.ExternalDependency;
-import com.eviware.soapui.impl.wsdl.support.FileAttachment;
-import com.eviware.soapui.impl.wsdl.support.ModelItemIconAnimator;
-import com.eviware.soapui.impl.wsdl.support.RequestFileAttachment;
+import com.eviware.soapui.impl.wsdl.support.*;
 import com.eviware.soapui.impl.wsdl.support.jms.header.JMSHeaderContainer;
 import com.eviware.soapui.impl.wsdl.support.jms.property.JMSPropertyContainer;
 import com.eviware.soapui.impl.wsdl.teststeps.HttpTestRequestStep.RequestHeaderHolder;
 import com.eviware.soapui.impl.wsdl.teststeps.SettingPathPropertySupport;
-import com.eviware.soapui.model.iface.Attachment;
-import com.eviware.soapui.model.iface.Request;
-import com.eviware.soapui.model.iface.Submit;
-import com.eviware.soapui.model.iface.SubmitContext;
-import com.eviware.soapui.model.iface.SubmitListener;
+import com.eviware.soapui.model.iface.*;
 import com.eviware.soapui.model.propertyexpansion.PropertyExpansion;
 import com.eviware.soapui.model.propertyexpansion.PropertyExpansionUtils;
 import com.eviware.soapui.model.propertyexpansion.PropertyExpansionsResult;
@@ -49,7 +41,7 @@ import com.eviware.soapui.support.types.StringToStringMap;
 import com.eviware.soapui.support.types.StringToStringsMap;
 import org.apache.xmlbeans.impl.values.XmlValueOutOfRangeException;
 
-import javax.swing.ImageIcon;
+import javax.swing.*;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -520,13 +512,40 @@ public abstract class AbstractHttpRequest<T extends AbstractRequestConfig> exten
 
 	public String getSelectedAuthProfile()
 	{
-		CredentialsConfig credentialsConfig = getConfig().getCredentials();
-		if( credentialsConfig == null || credentialsConfig.getSelectedAuthProfile() == null )
+		CredentialsConfig credentialsConfig = getCredentialsConfig();
+		String selectedAuthProfile = credentialsConfig.getSelectedAuthProfile();
+		if( selectedAuthProfile == null )
 		{
+			String authType = getAuthType();
+
+			if( AuthType.PREEMPTIVE.toString().equals( authType )
+					|| AuthType.GLOBAL_HTTP_SETTINGS.toString().equals( authType ))
+			{
+				addBasicProfileAndRemoveGlobalHttpSettingsAndPreEmptive();
+				return BASIC_AUTH_PROFILE;
+			}
 			return CredentialsConfig.AuthType.NO_AUTHORIZATION.toString();
 		}
+		else if(AuthType.PREEMPTIVE.toString().equals( selectedAuthProfile )
+				|| AuthType.GLOBAL_HTTP_SETTINGS.toString().equals( selectedAuthProfile ))
+		{
+			addBasicProfileAndRemoveGlobalHttpSettingsAndPreEmptive();
+			return BASIC_AUTH_PROFILE;
+		}
 
-		return credentialsConfig.getSelectedAuthProfile();
+		return selectedAuthProfile;
+	}
+
+	private void addBasicProfileAndRemoveGlobalHttpSettingsAndPreEmptive()
+	{
+		addBasicAuthenticationProfile( BASIC_AUTH_PROFILE );
+		removeGlobalHttpSettingsAndPreEmptiveProfiles();
+	}
+
+	private void removeGlobalHttpSettingsAndPreEmptiveProfiles()
+	{
+		removeBasicAuthenticationProfile( AuthType.PREEMPTIVE.toString() );
+		removeBasicAuthenticationProfile( AuthType.GLOBAL_HTTP_SETTINGS.toString() );
 	}
 
 	public Set<String> getBasicAuthenticationProfiles()
@@ -537,8 +556,21 @@ public abstract class AbstractHttpRequest<T extends AbstractRequestConfig> exten
 		{
 			for( String type : credentialsConfig.getAddedBasicAuthenticationTypesList() )
 			{
-				authTypes.add( type );
+				if( AuthType.PREEMPTIVE.toString().equals( type )
+						|| AuthType.GLOBAL_HTTP_SETTINGS.toString().equals( type ))
+				{
+					authTypes.add( BASIC_AUTH_PROFILE );
+				}
+				else
+				{
+					authTypes.add( type );
+				}
 			}
+		}
+
+		if( authTypes.contains( BASIC_AUTH_PROFILE ) )
+		{
+			removeGlobalHttpSettingsAndPreEmptiveProfiles();
 		}
 		return authTypes;
 	}
@@ -615,10 +647,29 @@ public abstract class AbstractHttpRequest<T extends AbstractRequestConfig> exten
 		notifyPropertyChanged( "domain", old, domain );
 	}
 
-	public void setSelectedAuthProfileAndAuthType( String authProfile, String authType )
+	public void setSelectedAuthProfileAndAuthType( String authProfile, AuthType.Enum authType )
 	{
 		setSelectedAuthProfile( authProfile );
 		setAuthType( authType );
+	}
+
+	public CredentialsConfig.AuthType.Enum getBasicAuthType( String selectedProfile )
+	{
+		if( AbstractHttpRequest.BASIC_AUTH_PROFILE.equals( selectedProfile ) )
+		{
+			if(getPreemptive() )
+			{
+				return CredentialsConfig.AuthType.PREEMPTIVE;
+			}
+			else
+			{
+				return CredentialsConfig.AuthType.GLOBAL_HTTP_SETTINGS;
+			}
+		}
+		else
+		{
+			return CredentialsConfig.AuthType.Enum.forString( selectedProfile );
+		}
 	}
 
 	private void setSelectedAuthProfile( String authProfile )
@@ -630,25 +681,24 @@ public abstract class AbstractHttpRequest<T extends AbstractRequestConfig> exten
 		notifyPropertyChanged( SELECTED_AUTH_PROFILE_PROPERTY_NAME, old, authProfile );
 	}
 
-	private void setAuthType( String authType )
+	private void setAuthType(  AuthType.Enum authType )
 	{
-		if( !AuthType.O_AUTH_2_0.toString().equals( authType )
-				&& ( !AuthType.NO_AUTHORIZATION.toString().equals( authType ) ) )
+		if( authType!=null && !AuthType.O_AUTH_2_0.equals( authType ) && !AuthType.NO_AUTHORIZATION.equals( authType ) )
 		{
-			if( authType.equals( AuthType.PREEMPTIVE.toString() ) || authType.equals( AuthType.GLOBAL_HTTP_SETTINGS.toString() ) )
+			if( authType.equals( AuthType.PREEMPTIVE ) || authType.equals( AuthType.GLOBAL_HTTP_SETTINGS ) )
 			{
 				addBasicAuthenticationProfile( BASIC_AUTH_PROFILE );
 			}
 			else
 			{
-				addBasicAuthenticationProfile( authType );
+				addBasicAuthenticationProfile( authType.toString() );
 			}
 		}
 
 		String old = getAuthType();
 		CredentialsConfig credentialsConfig = getCredentialsConfig();
 
-		credentialsConfig.setAuthType( AuthType.Enum.forString( authType ) );
+		credentialsConfig.setAuthType( authType );
 		notifyPropertyChanged( "authType", old, authType );
 	}
 
@@ -774,7 +824,7 @@ public abstract class AbstractHttpRequest<T extends AbstractRequestConfig> exten
 		return credentialsConfig;
 	}
 
-	public static class RequestIconAnimator<T extends AbstractHttpRequest<?>> extends ModelItemIconAnimator<T> implements
+	public static class RequestIconAnimator<T extends AbstractHttpRequest<?>> extends IconAnimator<T> implements
 			SubmitListener
 	{
 		public RequestIconAnimator( T modelItem, String baseIcon, String animIcon, int iconCounts )

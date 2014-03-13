@@ -144,8 +144,8 @@ public class OAuth2Form extends AbstractAuthenticationForm implements OAuth2Acce
 		disclosureButton.setName( "oAuth2DisclosureButton" );
 		oAuth2Form.addComponentWithoutLabel( disclosureButton );
 
-		accessTokenForm = new OAuth2GetAccessTokenForm();
-		final JDialog accessTokenFormDialog = accessTokenForm.getComponent( profile );
+		accessTokenForm = new OAuth2GetAccessTokenForm( profile );
+		final JDialog accessTokenFormDialog = accessTokenForm.getComponent();
 
 		disclosureButton.addMouseListener( new DisclosureButtonMouseListener( accessTokenFormDialog, disclosureButton ) );
 
@@ -224,31 +224,6 @@ public class OAuth2Form extends AbstractAuthenticationForm implements OAuth2Acce
 	private String setWrappedText( String text )
 	{
 		return String.format( "<html><div WIDTH=%d>%s</div><html>", OAuth2Form.ACCESS_TOKEN_STATUS_TEXT_WIDTH, text );
-	}
-
-	private boolean isEnoughSpaceAvailableBelowTheButton( Point disclosureButtonLocation, int accessTokenDialogHeight, int disclosureButtonHeight )
-	{
-		GraphicsConfiguration currentGraphicsConfiguration = getGraphicsConfigurationForPosition( disclosureButtonLocation );
-		if( currentGraphicsConfiguration == null )
-		{
-			return true;
-		}
-		double bottomYCoordinate = disclosureButtonLocation.getY() + accessTokenDialogHeight + disclosureButtonHeight;
-		double bottomUsableYCoordinateOnScreen = currentGraphicsConfiguration.getBounds().getMaxY()
-				- Toolkit.getDefaultToolkit().getScreenInsets( currentGraphicsConfiguration ).bottom;
-		return bottomYCoordinate <= bottomUsableYCoordinateOnScreen;
-	}
-
-	private GraphicsConfiguration getGraphicsConfigurationForPosition( Point point )
-	{
-		for( GraphicsDevice graphicsDevice : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices() )
-		{
-			if( graphicsDevice.getDefaultConfiguration().getBounds().contains( point ) )
-			{
-				return graphicsDevice.getDefaultConfiguration();
-			}
-		}
-		return null;
 	}
 
 	private void setAccessTokenFormDialogBoundsBelowTheButton( Point disclosureButtonLocation, JDialog accessTokenFormDialog, int disclosureButtonHeight )
@@ -355,7 +330,7 @@ public class OAuth2Form extends AbstractAuthenticationForm implements OAuth2Acce
 			accessTokenFormDialog.pack();
 			accessTokenFormDialog.setVisible( true );
 			disclosureButton.setText( "▲ Get Token" );
-			if( isEnoughSpaceAvailableBelowTheButton( disclosureButtonLocation, accessTokenFormDialog.getHeight(), source.getHeight() ) )
+			if( UISupport.isEnoughSpaceAvailableBelowComponent( disclosureButtonLocation, accessTokenFormDialog.getHeight(), source.getHeight() ) )
 			{
 				setAccessTokenFormDialogBoundsBelowTheButton( disclosureButtonLocation, accessTokenFormDialog, source.getHeight() );
 			}

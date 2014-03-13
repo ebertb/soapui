@@ -50,7 +50,7 @@ import java.util.Map;
 
 /**
  * Facade for common UI-related tasks
- * 
+ *
  * @author Ole.Matzura
  */
 
@@ -101,7 +101,7 @@ public class UISupport
 
 	/**
 	 * Add a classloader to find resources.
-	 * 
+	 *
 	 * @param loader
 	 * @deprecated Use {@link #addResourceClassLoader(ClassLoader)} instead
 	 */
@@ -112,7 +112,7 @@ public class UISupport
 
 	/**
 	 * Add a classloader to find resources.
-	 * 
+	 *
 	 * @param loader
 	 */
 	public static void addResourceClassLoader( ClassLoader loader )
@@ -123,7 +123,7 @@ public class UISupport
 	/**
 	 * Set the main frame of this application. This is only used when running
 	 * under Swing.
-	 * 
+	 *
 	 * @param frame
 	 */
 	public static void setMainFrame( Component frame )
@@ -707,6 +707,10 @@ public class UISupport
 		uiUtils.invokeAndWait( runnable );
 	}
 
+	public static void invokeAndWaitIfNotInEDT( Runnable runnable){
+		uiUtils.invokeAndWaitIfNotInEDT( runnable );
+	}
+
 	public static JXToolBar createToolbar()
 	{
 		JXToolBar toolbar = new JXToolBar();
@@ -1081,5 +1085,30 @@ public class UISupport
 		} );
 		label.setCursor( Cursor.getPredefinedCursor( Cursor.HAND_CURSOR ) );
 		return label;
+	}
+
+	public static boolean isEnoughSpaceAvailableBelowComponent( Point componentLocation, int expandableDialogHeight, int componentHeight )
+	{
+		GraphicsConfiguration currentGraphicsConfiguration = getGraphicsConfigurationForPosition( componentLocation );
+		if( currentGraphicsConfiguration == null )
+		{
+			return true;
+		}
+		double bottomYCoordinate = componentLocation.getY() + expandableDialogHeight + componentHeight;
+		double bottomUsableYCoordinateOnScreen = currentGraphicsConfiguration.getBounds().getMaxY()
+				- Toolkit.getDefaultToolkit().getScreenInsets( currentGraphicsConfiguration ).bottom;
+		return bottomYCoordinate <= bottomUsableYCoordinateOnScreen;
+	}
+
+	private static GraphicsConfiguration getGraphicsConfigurationForPosition( Point point )
+	{
+		for( GraphicsDevice graphicsDevice : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices() )
+		{
+			if( graphicsDevice.getDefaultConfiguration().getBounds().contains( point ) )
+			{
+				return graphicsDevice.getDefaultConfiguration();
+			}
+		}
+		return null;
 	}
 }

@@ -22,9 +22,21 @@ import com.jgoodies.binding.PresentationModel;
 import com.jgoodies.binding.value.AbstractValueModel;
 
 import javax.annotation.Nonnull;
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -54,16 +66,18 @@ public class OAuth2GetAccessTokenForm implements OAuth2AccessTokenStatusChangeLi
 
 	static final ImageIcon DEFAULT_ICON = null;
 
-
 	private OAuth2Profile profile;
 	private JLabel accessTokenStatusText;
 	private OAuth2AccessTokenStatusChangeManager statusChangeManager;
 	private JDialog accessTokenDialog;
 
-	// FIXME Why not a constructor?
-	public JDialog getComponent( OAuth2Profile profile )
+	public OAuth2GetAccessTokenForm( OAuth2Profile profile )
 	{
 		this.profile = profile;
+	}
+
+	public JDialog getComponent()
+	{
 		SimpleBindingForm accessTokenForm = createSimpleBindingForm( profile );
 		statusChangeManager = new OAuth2AccessTokenStatusChangeManager( this );
 		populateGetAccessTokenForm( accessTokenForm );
@@ -232,7 +246,24 @@ public class OAuth2GetAccessTokenForm implements OAuth2AccessTokenStatusChangeLi
 	{
 		accessTokenStatusText.setText( "" );
 		accessTokenStatusText.setIcon( DEFAULT_ICON );
+		SwingUtilities.invokeLater( new Runnable()
+		{
+			public void run()
+			{
+				closeGetAccessTokenDialog();
+			}
+		} );
 	}
+
+	private void closeGetAccessTokenDialog()
+	{
+		if( accessTokenDialog != null )
+		{
+			accessTokenDialog.setVisible( false );
+			accessTokenDialog.dispose();
+		}
+	}
+
 
 	private class EditAutomationScriptsAction extends AbstractAction
 	{
@@ -247,11 +278,7 @@ public class OAuth2GetAccessTokenForm implements OAuth2AccessTokenStatusChangeLi
 		@Override
 		public void actionPerformed( ActionEvent e )
 		{
-			if( accessTokenDialog != null )
-			{
-				accessTokenDialog.setVisible( false );
-				accessTokenDialog.dispose();
-			}
+			closeGetAccessTokenDialog();
 			UISupport.showDesktopPanel( new OAuth2ScriptsDesktopPanel( profile ) );
 		}
 	}

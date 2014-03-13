@@ -1,8 +1,10 @@
 package com.eviware.soapui.impl.support;
 
 import com.eviware.soapui.config.BaseMockOperationConfig;
-import com.eviware.soapui.config.ModelItemConfig;
+import com.eviware.soapui.config.MockOperationDispatchStyleConfig;
 import com.eviware.soapui.impl.wsdl.AbstractWsdlModelItem;
+import com.eviware.soapui.impl.wsdl.mock.dispatch.MockOperationDispatchRegistry;
+import com.eviware.soapui.impl.wsdl.mock.dispatch.MockOperationDispatcher;
 import com.eviware.soapui.model.iface.Operation;
 import com.eviware.soapui.model.mock.MockOperation;
 import com.eviware.soapui.model.mock.MockResponse;
@@ -13,26 +15,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractMockOperation
-		<ModelItemConfigType extends ModelItemConfig, MockResponseType extends MockResponse>
-		extends AbstractWsdlModelItem<ModelItemConfigType>
+		<BaseMockOperationConfigType extends BaseMockOperationConfig, MockResponseType extends MockResponse>
+		extends AbstractWsdlModelItem<BaseMockOperationConfigType>
 		implements MockOperation, PropertyChangeListener
 {
+	public final static String DISPATCH_PATH_PROPERTY = MockOperation.class.getName() + "@dispatchpath";
+	public final static String DISPATCH_STYLE_PROPERTY = MockOperation.class.getName() + "@dispatchstyle";
+
+	private MockOperationDispatcher dispatcher;
+
 	private List<MockResponseType> responses = new ArrayList<MockResponseType>();
 
-	protected AbstractMockOperation( ModelItemConfigType config, AbstractMockService parent, String icon )
+	protected AbstractMockOperation( BaseMockOperationConfigType config, AbstractMockService parent, String icon )
 	{
 		super( config, parent, icon );
 	}
 
-	protected void setupConfig( ModelItemConfigType config )
+	protected void setupConfig( BaseMockOperationConfigType config )
 	{
-		BaseMockOperationConfig baseConfig = (BaseMockOperationConfig)config;
 		Operation operation = getOperation();
 		if( !config.isSetName() )
 			config.setName( operation == null ? "<missing operation>" : operation.getName() );
 
-		if( !baseConfig.isSetDefaultResponse() && getMockResponseCount() > 0 )
+		if( !config.isSetDefaultResponse() && getMockResponseCount() > 0 )
 			setDefaultResponse( getMockResponseAt( 0 ).getName() );
+
+		if( !config.isSetDispatchStyle() )
+			config.setDispatchStyle( MockOperationDispatchStyleConfig.SEQUENCE );
+
+		dispatcher = MockOperationDispatchRegistry.buildDispatcher( getConfig().getDispatchStyle().toString(), this );
 	}
 
 	public void addMockResponse(MockResponseType response)
@@ -90,7 +101,7 @@ public abstract class AbstractMockOperation
 		finally
 		{
 			mockResponse.release();
-			removeResponseFromConfig( ix ); // wow - do we really know that the ordering is the same.....
+			removeResponseFromConfig( ix );
 		}
 	}
 
@@ -98,15 +109,65 @@ public abstract class AbstractMockOperation
 
 	public String getDefaultResponse()
 	{
-		return ((BaseMockOperationConfig)getConfig()).getDefaultResponse();
+		return getConfig().getDefaultResponse();
 	}
 
 	public void setDefaultResponse( String defaultResponse )
 	{
 		String old = getDefaultResponse();
-		((BaseMockOperationConfig)getConfig()).setDefaultResponse( defaultResponse );
+		getConfig().setDefaultResponse( defaultResponse );
 		// noone is listening? notifyPropertyChanged( WsdlMockOperation.DEFAULT_RESPONSE_PROPERTY, old, defaultResponse );
 	}
 
+	@Override
+	public String getScript()
+	{
+		return getConfig().getDispatchPath();
+	}
+
+	@Override
+	public void setScript( String dispatchPath )
+	{
+		String old = getScript();
+		getConfig().setDispatchPath( dispatchPath );
+		notifyPropertyChanged( DISPATCH_PATH_PROPERTY, old, dispatchPath );
+	}
+
+	public MockOperationDispatcher getDispatcher()
+	{
+		return dispatcher;
+	}
+
+	public void setDispatcher( MockOperationDispatcher dispatcher )
+	{
+		this.dispatcher = dispatcher;
+	}
+
+	public String getDispatchStyle()
+	{
+		return String.valueOf( getConfig().isSetDispatchStyle() ? getConfig().getDispatchStyle()
+				: MockOperationDispatchStyleConfig.SEQUENCE );
+	}
+
+	public MockOperationDispatcher setDispatchStyle( String dispatchStyle )
+	{
+		String old = getDispatchStyle();
+		MockOperationDispatcher dispatcher = getDispatcher();
+		if( dispatcher != null && dispatchStyle.equals( old ) )
+			return dispatcher;
+
+		getConfig().setDispatchStyle( MockOperationDispatchStyleConfig.Enum.forString( dispatchStyle ) );
+
+		if( dispatcher != null )
+		{
+			dispatcher.release();
+		}
+
+		setDispatcher( MockOperationDispatchRegistry.buildDispatcher( dispatchStyle, this ));
+
+		notifyPropertyChanged( DISPATCH_STYLE_PROPERTY, old, dispatchStyle );
+
+		return dispatcher;
+	}
 
 }
